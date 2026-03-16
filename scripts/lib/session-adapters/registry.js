@@ -3,15 +3,31 @@
 const { createClaudeHistoryAdapter } = require('./claude-history');
 const { createDmuxTmuxAdapter } = require('./dmux-tmux');
 
-function createDefaultAdapters() {
+function buildDefaultAdapterOptions(options, adapterId) {
+  const sharedOptions = {
+    loadStateStoreImpl: options.loadStateStoreImpl,
+    persistSnapshots: options.persistSnapshots,
+    recordingDir: options.recordingDir,
+    stateStore: options.stateStore
+  };
+
+  return {
+    ...sharedOptions,
+    ...(options.adapterOptions && options.adapterOptions[adapterId]
+      ? options.adapterOptions[adapterId]
+      : {})
+  };
+}
+
+function createDefaultAdapters(options = {}) {
   return [
-    createClaudeHistoryAdapter(),
-    createDmuxTmuxAdapter()
+    createClaudeHistoryAdapter(buildDefaultAdapterOptions(options, 'claude-history')),
+    createDmuxTmuxAdapter(buildDefaultAdapterOptions(options, 'dmux-tmux'))
   ];
 }
 
 function createAdapterRegistry(options = {}) {
-  const adapters = options.adapters || createDefaultAdapters();
+  const adapters = options.adapters || createDefaultAdapters(options);
 
   return {
     adapters,
